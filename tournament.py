@@ -8,13 +8,17 @@ import psycopg2
 
 def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
-    return psycopg2.connect("dbname=tournament")
+    try:
+        conn = psycopg2.connect("dbname=tournament")
+        cursor = conn.cursor()
+        return conn, cursor
+    except:
+        print("Database Connection Error.")
 
 
 def deleteMatches():
     """Remove all the match records from the database."""
-    conn = connect()
-    c = conn.cursor()
+    conn, c = connect()
     s = " delete from Matches;"
     c.execute(s)
     conn.commit()
@@ -23,8 +27,7 @@ def deleteMatches():
 
 def deletePlayers():
     """Remove all the player records from the database."""
-    conn = connect()
-    c = conn.cursor()
+    conn, c = connect()
     s = " delete from Players;"
     c.execute(s)
     conn.commit()
@@ -33,8 +36,7 @@ def deletePlayers():
 
 def countPlayers():
     """Returns the number of players currently registered."""
-    conn = connect()
-    c = conn.cursor()
+    conn, c = connect()
     s = " select count(*) as num from Players;"
     c.execute(s)
     conn.commit()
@@ -53,8 +55,7 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
-    conn = connect()
-    c = conn.cursor()
+    conn, c = connect()
     c.execute("insert into Players(name) values(%s)",(name,))
     conn.commit()
     conn.close()
@@ -75,8 +76,7 @@ def playerStandings():
     """
 
     list = []
-    conn = connect()
-    c = conn.cursor()
+    conn, c = connect()
     """get the wins number of each player"""
     winCount = "create view winCount as(select winner as winner , count(*) as num from Matches group by winner );"
     """get the lose number of each player""" 
@@ -130,8 +130,7 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
-    conn = connect()
-    c = conn.cursor()
+    conn, c = connect()
     c.execute(" insert into Matches(player1, player2, winner) values(%s,%s,%s)",(winner,loser, winner))
     conn.commit()
     conn.close()
@@ -155,6 +154,9 @@ def swissPairings():
     list = []
     inlist = []
     standings = playerStandings()
+    if countPlayers() % 2 != 0:
+        print("The number of players is not an even number.")
+        return list
     for i in range(len(standings)/2):
         inlist.append(standings[i*2][0])
         inlist.append(standings[i*2][1])
