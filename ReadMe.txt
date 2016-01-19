@@ -1,3 +1,5 @@
+This is a database system to record the swiss-system tournament results.
+
 To seccessfully run the application:
 1) Launch vagrant.
 2) Access to the tournament database, run command: psql tournament
